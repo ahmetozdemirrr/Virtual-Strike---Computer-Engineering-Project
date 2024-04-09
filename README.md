@@ -10,7 +10,7 @@ Virtual Strike is a shooting game designed to be played using VR (Virtual Realit
 
 - Unreal Engine: The game engine powering Virtual Strike, providing stunning visuals and immersive gameplay.
 - VR Headset: Utilized to immerse players in the virtual world, allowing them to interact with the game environment.
-- Arduino (or similar microcontroller): Used to develop the handheld aiming device, enabling players to aim and shoot within the game.
+- Raspberry Pi 4 (or similar microcontroller): Used to develop the handheld aiming device, enabling players to aim and shoot within the game.
 - Node.js: Employed for server-side development to support backend functionality and multiplayer capabilities.
 - Button and Cursor Sensor: Integrated into the aiming device to track real-life movements and translate them into in-game actions.
 - Android Phone Projection: Enables players to experience the game on a computer with VR glasses by projecting the game onto an Android phone.
@@ -38,3 +38,15 @@ Have fun aiming, shooting, and experiencing the thrill of virtual reality gaming
 If you have any questions, suggestions, or feedback, feel free to reach out to us at virtualstrike@example.com. We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
 Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
+
+
+![Gebze Technical University](https://abl.gtu.edu.tr/html/mobil/gtu_logo_en_500.png)
+# CSE396 Computer Engineering Project
+
+The course was given by Prof. Dr. Erkan Zergeroğlu at Gebze Technical University for the Department of Computer Engineering in the Spring 2024.
+
+Links:
+* [Computer Engineering Project Course](https://abl.gtu.edu.tr/ects/?duzey=ucuncu&modul=ders_bilgi_formu&dno=B%C4%B0L%20396&bolum=104&tip=lisans&dil=tr)
+* [Prof. Dr. Erkan Zergeroğlu](https://www.gtu.edu.tr/tr/personel/98/10414/display.aspx)
+* [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
+* [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
