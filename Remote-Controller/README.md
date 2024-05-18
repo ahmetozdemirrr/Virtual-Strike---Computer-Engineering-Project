@@ -33,7 +33,7 @@ There are two source files in the `src` directory:
 This project is licensed under the MIT License. See the LICENSE file for more information.
 
 ## Contact Us:
-If you have any questions, suggestions, or feedback, feel free to reach out to us at [virtualstrike.tech](http://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
+If you have any questions, suggestions, or feedback, feel free to reach out to us at [virtualstrike.tech](https://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
 Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
 
