@@ -38,10 +38,19 @@ Contributions to the Virtual Strike server are welcome. Please ensure to follow 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
-## Acknowledgments
-Gebze Technical University
-CSE 396 Course Staff
-All team members who contributed to the development of Virtual Strike
+## Contact Us:
+If you have any questions, suggestions, or feedback, feel free to reach out to us at virtualstrike.tech . We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
-## Contact
-For any inquiries, you can reach out to the project team through the issues section of this GitHub repository.
+Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
+
+
+![Gebze Technical University](https://abl.gtu.edu.tr/html/mobil/gtu_logo_en_500.png)
+# CSE396 Computer Engineering Project
+
+The course was given by Prof. Dr. Erkan Zergeroğlu at Gebze Technical University for the Department of Computer Engineering in the Spring 2024.
+
+Links:
+* [Computer Engineering Project Course](https://abl.gtu.edu.tr/ects/?duzey=ucuncu&modul=ders_bilgi_formu&dno=B%C4%B0L%20396&bolum=104&tip=lisans&dil=tr)
+* [Prof. Dr. Erkan Zergeroğlu](https://www.gtu.edu.tr/tr/personel/98/10414/display.aspx)
+* [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
+* [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
