@@ -39,7 +39,7 @@ Contributions to the Virtual Strike server are welcome. Please ensure to follow 
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
 ## Contact Us:
-If you have any questions, suggestions, or feedback, feel free to reach out to us at virtualstrike.tech . We'd love to hear from you and are committed to making Virtual Strike the best it can be.
+If you have any questions, suggestions, or feedback, feel free to reach out to us at [virtualstrike.tech](http://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
 Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
 

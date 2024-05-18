@@ -35,7 +35,7 @@ Launch the game and immerse yourself in the virtual world of Virtual Strike.
 Have fun aiming, shooting, and experiencing the thrill of virtual reality gaming!
 
 ## Contact Us:
-If you have any questions, suggestions, or feedback, feel free to reach out to us at virtualstrike.tech . We'd love to hear from you and are committed to making Virtual Strike the best it can be.
+If you have any questions, suggestions, or feedback, feel free to reach out to us at [virtualstrike.tech](http://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
 Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
 
