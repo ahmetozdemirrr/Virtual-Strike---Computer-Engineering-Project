@@ -52,4 +52,4 @@ Links:
 * [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
 * [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
 
-This module of the project was written by @Dogukan777.
+This module of the project was written by [Doğukan Baş](https://github.com/Dogukan777).
