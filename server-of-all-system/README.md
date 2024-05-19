@@ -35,11 +35,8 @@ The server uses WebSocket technology to handle real-time data transmission betwe
 ## Contributing
 Contributions to the Virtual Strike server are welcome. Please ensure to follow the existing code style and add unit tests for any new or changed functionality.
 
-## License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
-
 ## Contact Us:
-If you have any questions, suggestions, or feedback, feel free to reach out to us at [virtualstrike.tech](https://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
+If you have any questions, suggestions, or feedback, feel free to reach out to us at [www.virtualstrike.com](https://virtualstrike.tech). We'd love to hear from you and are committed to making Virtual Strike the best it can be.
 
 Thank you for your interest in Virtual Strike. Let the virtual shooting adventure begin!
 
@@ -54,3 +51,5 @@ Links:
 * [Prof. Dr. Erkan Zergeroğlu](https://www.gtu.edu.tr/tr/personel/98/10414/display.aspx)
 * [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
 * [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
+
+This module of the project was written by @Dogukan777.
