@@ -30,9 +30,20 @@ With the completion of the Virtual Strike project, players will gain access to a
 
 We welcome contributions from developers, designers, and enthusiasts alike. Whether you're interested in coding, design, testing, or documentation, there's a place for you in the Virtual Strike community. To contribute, simply fork the repository, make your changes, and submit a pull request. Let's work together to make Virtual Strike the ultimate virtual reality gaming experience!
 
-Developers: [`Ahmet Özdemir`](https://github.com/ahmetozdemirrr), [Doğukan Baş](https://github.com/Dogukan777), [Yasir Güneş](https://github.com/yasirgunes), [Akif Safa Angi](https://github.com/Leaxer), [Murat Erbilici](https://github.com/ThoRight), [Burak Kurt](https://github.com/Kurtburakk), [Aykut Sert](https://github.com/aykutssert) and [İlkay Bolat](https://github.com/ilkayofTarsus).
+### Developers: 
 
-Scrum Master: [Ahmet Özdemir](https://github.com/ahmetozdemirrr)
+[Ahmet Özdemir](https://github.com/ahmetozdemirrr), 
+[Doğukan Baş](https://github.com/Dogukan777), 
+[Yasir Güneş](https://github.com/yasirgunes), 
+[Akif Safa Angi](https://github.com/Leaxer), 
+[Murat Erbilici](https://github.com/ThoRight), 
+[Burak Kurt](https://github.com/Kurtburakk), 
+[Aykut Sert](https://github.com/aykutssert) and 
+[İlkay Bolat](https://github.com/ilkayofTarsus).
+
+### Scrum Master: 
+
+[Ahmet Özdemir](https://github.com/ahmetozdemirrr)
 
 ## Getting Started:
 
