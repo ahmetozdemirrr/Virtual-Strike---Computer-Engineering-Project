@@ -50,19 +50,29 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initializeQuadData();
         connectWebSocket();
         connectSensorSocket();
         GvrView gvrView = findViewById(R.id.gvr_view);
         gvrView.setRenderer(this);
         setGvrView(gvrView);
 
-        float[] mView = new float[16];
         mCamera = new float[16];
-
         // Initialize quad vertices and texture coordinates
-        initializeQuadData();
-    }
 
+    }
+    
+    @Override
+    protected void onPause() 
+    {
+        super.onPause();
+        webSocketClient.close();
+        sensorSocket.close();
+        GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleLeft}, 0);
+        GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleRight}, 0);
+        GLES20.glDeleteProgram(mQuadProgram);
+    }
+    
     private void initializeQuadData()
     {
         final float[] QUAD_COORDS = new float[]
@@ -90,12 +100,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     {
         byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
         Bitmap bmp = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
+        
         if (isLeftEye)
         {
             bitmapLeft = bmp;
         }
-
+        
         else
         {
             bitmapRight = bmp;
@@ -112,119 +122,115 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
         int textureHandle;
 
-        synchronized (this)
+        synchronized (this) 
         {
-            if (eye.getType() == Eye.Type.LEFT)
-            {
-                textureHandle = mTextureDataHandleLeft;
-            }
-
-            else
-            {
-                textureHandle = mTextureDataHandleRight;
-            }
+            textureHandle = (eye.getType() == Eye.Type.LEFT) ? mTextureDataHandleLeft : mTextureDataHandleRight;
         }
         drawQuad(perspective, textureHandle);
     }
 
-    private void updateSurface()
+    private void updateSurface() 
     {
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
-        synchronized (this)
+        synchronized (this) 
         {
-            if (appisOpen)
+            if (appisOpen) 
             {
                 mTextureDataHandleLeft = loadTexture(this, R.drawable.splash);
                 mTextureDataHandleRight = loadTexture(this, R.drawable.splash);
                 appisOpen = false;
             }
 
-            if (bitmapLeft != null)
+            if (bitmapLeft != null) 
             {
+                GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleLeft}, 0);
                 mTextureDataHandleLeft = loadTexture(bitmapLeft);
+                bitmapLeft.recycle();
                 bitmapLeft = null;
             }
 
-            if (bitmapRight != null)
+            if (bitmapRight != null) 
             {
+                GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleRight}, 0);
                 mTextureDataHandleRight = loadTexture(bitmapRight);
+                bitmapRight.recycle();
                 bitmapRight = null;
             }
         }
     }
 
-    private void connectWebSocket()
+    private void connectWebSocket() 
     {
         URI uri;
-
-        try
+        
+        try 
         {
             uri = new URI("ws://172.20.10.2:3030");
-        }
-
-        catch (Exception e)
+        } 
+        
+        catch (Exception e) 
         {
             Log.e("WebSocket", "URI error", e);
             return;
         }
-
+        
         webSocketClient = new WebSocketClient(uri)
         {
             @Override
-            public void onOpen(ServerHandshake serverHandshake)
+            public void onOpen(ServerHandshake serverHandshake) 
             {
                 Log.i("WebSocket", "Connection opened");
             }
 
             @Override
-            public void onMessage(String message)
+            public void onMessage(String message) 
             {
-                runOnUiThread(() -> updateTexture(message));
+                 updateTexture(message);
             }
 
             @Override
-            public void onClose(int i, String s, boolean b)
+            public void onClose(int i, String s, boolean b) 
             {
                 Log.i("WebSocket", "Closed " + s);
             }
 
             @Override
-            public void onError(Exception e)
+            public void onError(Exception e) 
             {
                 Log.e("WebSocket", "Error ", e);
             }
         };
-        new Thread(() -> webSocketClient.connect()).start();
+        webSocketClient.connect();
     }
 
     private void connectSensorSocket()
     {
         URI uri;
-
+        
         try
         {
             uri = new URI("ws://45.55.49.156:3000");
         }
-
+        
         catch (Exception e)
         {
             e.printStackTrace();
             return;
         }
-
+        
         sensorSocket = new WebSocketClient(uri)
         {
             @Override
             public void onOpen(ServerHandshake serverHandshake)
             {
-                Log.i("SensorSocket", "Connection opened");
+                Log.i("SensorSocket", "Connection opened sensor");
             }
 
             @Override
             public void onMessage(String s)
             {
-                Log.i("SensorSocket", "Received message: " + s);
+                //Log.i("SensorSocket", "Received message: " + s);
             }
 
             @Override
@@ -250,7 +256,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 
         // Apply Kalman filter
         float[] mFilteredHeadView = kalmanFilter.update(currentHeadView);
-
         // Update the camera view with the filtered head view
         System.arraycopy(mFilteredHeadView, 0, mCamera, 0, 16);
 
@@ -268,8 +273,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 
     private void drawQuad(float[] perspective, int textureHandle)
     {
-        Log.i("drawQuad", "Drawing Quad");
-
         GLES20.glUseProgram(mQuadProgram);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
@@ -289,7 +292,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 
         float[] mvpMatrix = new float[16];
         Matrix.multiplyMM(mvpMatrix, 0, perspective, 0, modelMatrix, 0);
-
         GLES20.glUniformMatrix4fv(mModelViewProjectionParam, 1, false, mvpMatrix, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     }
@@ -297,7 +299,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     @Override
     public void onRendererShutdown()
     {
-        Log.i("MainActivity", "Renderer has been shut down");
+        //Log.i("MainActivity", "Selam ben Ahmet");
     }
 
     @Override
@@ -348,6 +350,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
         int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
         int program = GLES20.glCreateProgram();
+
         GLES20.glAttachShader(program, vertexShader);
         GLES20.glAttachShader(program, fragmentShader);
         GLES20.glLinkProgram(program);
@@ -366,7 +369,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
-
+        
         if (textureHandle[0] != 0)
         {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
@@ -407,6 +410,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         return textureHandle[0];
     }
 
+    /*
+        Hassas titreşimler handle edilmesin diye Kalman filtre tekniğini kullandım; değiştirebilirz sonra bu kısmı,
+        oyunda da yine titreşim sıkıntısı oluyor. Orası için Quaternion tekniğini kulanmayı deneyeceğiz yarın!!! (19.05.24)
+
+    */
     static class KalmanFilter
     {
         private final float[] stateEstimate;

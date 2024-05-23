@@ -45,4 +45,4 @@ Links:
 * [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
 * [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
 
-This module of the project was written by [Ahmet Özdemir](https://github.com/ahmetozdemirrr), [Doğukan Baş](https://github.com/Dogukan777), [Yasir Güneş](https://github.com/yasirgunes) and [İlkay Bolat](https://github.com/ilkayofTarsus).
+This module of the project was done by [Ahmet Özdemir](https://github.com/ahmetozdemirrr), [Doğukan Baş](https://github.com/Dogukan777), and [İlkay Bolat](https://github.com/ilkayofTarsus) (Source code and circuit design) [Yasir Güneş](https://github.com/yasirgunes) (remote-controller design, embedding source code with script).

@@ -8,11 +8,11 @@ Welcome to the Virtual Strike repository! Virtual Strike is an ambitious project
 
 [Ahmet Özdemir](https://github.com/ahmetozdemirrr), 
 [Doğukan Baş](https://github.com/Dogukan777), 
-[Yasir Güneş](https://github.com/yasirgunes), 
 [Akif Safa Angi](https://github.com/Leaxer), 
-[Murat Erbilici](https://github.com/ThoRight), 
-[Burak Kurt](https://github.com/Kurtburakk), 
-[Aykut Sert](https://github.com/aykutssert) and 
+[Murat Erbilici](https://github.com/ThoRight),
+[Yasir Güneş](https://github.com/yasirgunes),  
+[Aykut Sert](https://github.com/aykutssert),
+[Burak Kurt](https://github.com/Kurtburakk) and 
 [İlkay Bolat](https://github.com/ilkayofTarsus).
 
 ### Scrum Master: 
