@@ -25,6 +25,10 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 
+/**
+ * MainActivity class for the VR view streamer application.
+ * It handles rendering and updating textures for VR display.
+ */
 public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 {
     private static final float Z_NEAR = 0.1f;
@@ -51,6 +55,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     private SensorManager sensorManager;
     private Sensor accelerometer;
 
+    /**
+     * Called when the activity is first created.
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in onSaveInstanceState(Bundle). Note: Otherwise it is null.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -66,10 +76,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         mCamera = new float[16];
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        // Initialize quad vertices and texture coordinates
     }
 
+    /**
+     * Called when the activity is paused.
+     */
     @Override
     protected void onPause()
     {
@@ -81,6 +92,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         GLES20.glDeleteProgram(mQuadProgram);
     }
 
+    /**
+     * Initializes the quad data for rendering.
+     */
     private void initializeQuadData()
     {
         final float[] QUAD_COORDS = new float[]
@@ -104,6 +118,10 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         mQuadTexCoord.put(QUAD_TEX_COORDS).position(0);
     }
 
+    /**
+     * Updates the texture with the provided Base64 encoded image.
+     * @param base64Image The Base64 encoded image string.
+     */
     private synchronized void updateTexture(String base64Image)
     {
         byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
@@ -111,17 +129,28 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 
         if (isLeftEye)
         {
+            if (bitmapLeft != null)
+            {
+                bitmapLeft.recycle();
+            }
             bitmapLeft = bmp;
         }
 
         else
         {
+            if (bitmapRight != null)
+            {
+                bitmapRight.recycle();
+            }
             bitmapRight = bmp;
         }
         isLeftEye = !isLeftEye;
     }
 
-
+    /**
+     * Called when an eye needs to be drawn.
+     * @param eye The eye to be drawn.
+     */
     @Override
     public void onDrawEye(Eye eye)
     {
@@ -135,9 +164,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         {
             textureHandle = (eye.getType() == Eye.Type.LEFT) ? mTextureDataHandleLeft : mTextureDataHandleRight;
         }
-        drawQuad(perspective, textureHandle,eye);
+        drawQuad(perspective, textureHandle, eye);
     }
 
+    /**
+     * Updates the surface with the new textures.
+     */
     private void updateSurface()
     {
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
@@ -150,7 +182,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                 mTextureDataHandleRight = loadTexture(this, R.drawable.splash);
                 appisOpen = false;
             }
-
+            /*
             if (bitmapLeft != null)
             {
                 GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleLeft}, 0);
@@ -165,10 +197,250 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                 mTextureDataHandleRight = loadTexture(bitmapRight);
                 bitmapRight.recycle();
                 bitmapRight = null;
+            }*/
+
+            if (bitmapLeft != null && bitmapRight != null)
+            {
+                GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleLeft}, 0);
+                GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleRight}, 0);
+                mTextureDataHandleLeft = loadTexture(bitmapLeft);
+                mTextureDataHandleRight = loadTexture(bitmapRight);
+                bitmapLeft.recycle();
+                bitmapRight.recycle();
+                bitmapLeft = null;
+                bitmapRight = null;
             }
         }
     }
 
+    /**
+     * Called when a new frame is available.
+     * @param headTransform The head transform data.
+     */
+    @Override
+    public void onNewFrame(HeadTransform headTransform)
+    {
+        float[] currentHeadView = new float[16];
+        headTransform.getHeadView(currentHeadView, 0);
+
+        // Apply Kalman filter nd update the camera view with the filtered head view
+        float[] mFilteredHeadView = kalmanFilter.update(currentHeadView);
+        System.arraycopy(mFilteredHeadView, 0, mCamera, 0, 16);
+
+        if (accelerometer != null)
+        {
+            SensorEventListener sensorEventListener = new SensorEventListener()
+            {
+                @Override
+                public void onSensorChanged(SensorEvent event)
+                {
+                    float zValue = event.values[2];
+                    // Log.d("deneme222", "Z Value: " + zValue);
+                    sensorManager.unregisterListener(this);
+                    // Send the filtered head view data to the server
+                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue+ " " + String.valueOf(mCamera[2]);
+
+                    if (sensorSocket != null && sensorSocket.isOpen())
+                    {
+                        sensorSocket.send(ivmeolcer);
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy)
+                {
+                    // Sensör doğruluğu değişikliklerini burada yapcaz
+                }
+            };
+            sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        // Reset the sensor values to zero after sending
+        Matrix.setIdentityM(currentHeadView, 0);
+        headTransform.getHeadView(currentHeadView, 0);
+    }
+
+    /**
+     * Draws the quad for the given eye with the specified perspective and texture.
+     * @param perspective The perspective matrix.
+     * @param textureHandle The texture handle.
+     * @param eye The eye to draw.
+     */
+    private void drawQuad(float[] perspective, int textureHandle,Eye eye)
+    {
+        GLES20.glUseProgram(mQuadProgram);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
+
+        mQuadVertices.position(0);
+        GLES20.glVertexAttribPointer(mQuadPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, mQuadVertices);
+        GLES20.glEnableVertexAttribArray(mQuadPositionParam);
+
+        mQuadTexCoord.position(0);
+        GLES20.glVertexAttribPointer(mQuadTexCoordParam, TEXCOORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, mQuadTexCoord);
+        GLES20.glEnableVertexAttribArray(mQuadTexCoordParam);
+
+        float[] modelMatrix = new float[16];
+        Matrix.setIdentityM(modelMatrix, 0);
+
+        if((eye.getType() == Eye.Type.LEFT))
+        {
+            Matrix.translateM(modelMatrix, 0, 0.15f, 0.0f, -0.9f);
+        }
+
+        else
+        {
+            Matrix.translateM(modelMatrix, 0, -0.15f, 0.0f, -0.9f);
+        }
+        Matrix.scaleM(modelMatrix, 0, 1.0f, 1.0f, 1.0f);
+
+        float[] mvpMatrix = new float[16];
+        Matrix.multiplyMM(mvpMatrix, 0, perspective, 0, modelMatrix, 0);
+        GLES20.glUniformMatrix4fv(mModelViewProjectionParam, 1, false, mvpMatrix, 0);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    @Override
+    public void onRendererShutdown()
+    {
+        //Log.i("MainActivity", "Selam ben Ahmet");
+    }
+
+    @Override
+    public void onFinishFrame(Viewport viewport) {}
+
+    @Override
+    public void onSurfaceChanged(int width, int height)
+    {
+        GLES20.glViewport(0, 0, width, height);
+    }
+
+    @Override
+    public void onSurfaceCreated(EGLConfig eglConfig)
+    {
+        mQuadProgram = createQuadProgram();
+        mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
+        mQuadTexCoordParam = GLES20.glGetAttribLocation(mQuadProgram, "a_TexCoord");
+        mModelViewProjectionParam = GLES20.glGetUniformLocation(mQuadProgram, "u_MVP");
+        updateSurface();
+    }
+
+    /**
+     * Creates the quad program for rendering.
+     * @return The program handle.
+     */
+    private int createQuadProgram()
+    {
+        final String vertexShaderCode =
+        "attribute vec4 a_Position;\n" +
+        "attribute vec2 a_TexCoord;\n" +
+        "varying vec2 v_TexCoord;\n" +
+        "uniform mat4 u_MVP;\n" +
+        "void main() {\n" +
+        "  v_TexCoord = a_TexCoord;\n" +
+        "  gl_Position = u_MVP * a_Position;\n" +
+        "}\n";
+
+        final String fragmentShaderCode =
+        "precision mediump float;\n" +
+        "varying vec2 v_TexCoord;\n" +
+        "uniform sampler2D u_Texture;\n" +
+        "void main() {\n" +
+        "  vec4 textureColor = texture2D(u_Texture, v_TexCoord);\n" +
+        "  float distance = distance(v_TexCoord, vec2(0.51, 0.55));\n" +
+        "  if (distance < 0.005) {\n" + // Nişangah boyutunu ayarlamak için bu değeri küçültelim dogukan!!!
+        "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n" + // Kırmızı renk
+        "  } else {\n" +
+        "    gl_FragColor = textureColor;\n" +
+        "  }\n" +
+        "}\n";
+
+        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
+        int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
+        int program = GLES20.glCreateProgram();
+
+        GLES20.glAttachShader(program, vertexShader);
+        GLES20.glAttachShader(program, fragmentShader);
+        GLES20.glLinkProgram(program);
+
+        return program;
+    }
+
+    /**
+     * Loads the shader of the given type with the provided shader code.
+     * @param type The type of the shader.
+     * @param shaderCode The shader code.
+     * @return The shader handle.
+     */
+    private int loadShader(int type, String shaderCode)
+    {
+        int shader = GLES20.glCreateShader(type);
+
+        GLES20.glShaderSource(shader, shaderCode);
+        GLES20.glCompileShader(shader);
+
+        return shader;
+    }
+
+    /**
+     * Loads the texture from the given bitmap.
+     * @param bitmap The bitmap to load.
+     * @return The texture handle.
+     */
+    private int loadTexture(Bitmap bitmap)
+    {
+        final int[] textureHandle = new int[1];
+
+        GLES20.glGenTextures(1, textureHandle, 0);
+
+        if (textureHandle[0] != 0)
+        {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+            android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+            bitmap.recycle();
+        }
+
+        if (textureHandle[0] == 0)
+        {
+            throw new RuntimeException("Error loading texture.");
+        }
+        return textureHandle[0];
+    }
+
+    /**
+     * Loads the texture from the given resource ID.
+     * @param context The context to use.
+     * @param resourceId The resource ID of the drawable.
+     * @return The texture handle.
+     */
+    private int loadTexture(Context context, int resourceId)
+    {
+        final int[] textureHandle = new int[1];
+        GLES20.glGenTextures(1, textureHandle, 0);
+
+        if (textureHandle[0] != 0)
+        {
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = false;
+            final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+            android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            bitmap.recycle();
+        }
+
+        if (textureHandle[0] == 0)
+        {
+            throw new RuntimeException("Error loading texture.");
+        }
+        return textureHandle[0];
+    }
+
+    /**
+     * Connects to the WebSocket for receiving image data.
+     */
     private void connectWebSocket()
     {
         URI uri;
@@ -213,6 +485,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         webSocketClient.connect();
     }
 
+    /**
+     * Connects to the WebSocket for receiving sensor(gyroscope) data.
+     */
     private void connectSensorSocket()
     {
         URI uri;
@@ -258,205 +533,13 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         sensorSocket.connect();
     }
 
-    @Override
-    public void onNewFrame(HeadTransform headTransform)
-    {
-        float[] currentHeadView = new float[16];
-        headTransform.getHeadView(currentHeadView, 0);
-
-        // Apply Kalman filter
-        float[] mFilteredHeadView = kalmanFilter.update(currentHeadView);
-        // Update the camera view with the filtered head view
-        System.arraycopy(mFilteredHeadView, 0, mCamera, 0, 16);
-
-        if (accelerometer != null)
-        {
-            // Önce bir dinleyici ekleyin
-            SensorEventListener sensorEventListener = new SensorEventListener()
-            {
-                @Override
-                public void onSensorChanged(SensorEvent event)
-                {
-                    float zValue = event.values[2];
-                    Log.d("deneme222", "Z Value: " + zValue);
-                    // Sensör verilerini aldıktan sonra dinleyiciyi kaldırabilirsiniz
-                    sensorManager.unregisterListener(this);
-                    // Send the filtered head view data to the server
-                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue+ " " + String.valueOf(mCamera[2]);
-
-                    if (sensorSocket != null && sensorSocket.isOpen())
-                    {
-                        sensorSocket.send(ivmeolcer);
-                    }
-                }
-
-                @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                    // Sensör doğruluğu değişikliklerini burada işleyebilirsiniz.
-                }
-            };
-            // Dinleyiciyi kaydettirin
-            sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        // Reset the sensor values to zero after sending
-        Matrix.setIdentityM(currentHeadView, 0);
-        headTransform.getHeadView(currentHeadView, 0);
-    }
-
-    private void drawQuad(float[] perspective, int textureHandle,Eye eye)
-    {
-        GLES20.glUseProgram(mQuadProgram);
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle);
-
-        mQuadVertices.position(0);
-        GLES20.glVertexAttribPointer(mQuadPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, mQuadVertices);
-        GLES20.glEnableVertexAttribArray(mQuadPositionParam);
-
-        mQuadTexCoord.position(0);
-        GLES20.glVertexAttribPointer(mQuadTexCoordParam, TEXCOORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, mQuadTexCoord);
-        GLES20.glEnableVertexAttribArray(mQuadTexCoordParam);
-
-        float[] modelMatrix = new float[16];
-        Matrix.setIdentityM(modelMatrix, 0);
-
-        if((eye.getType() == Eye.Type.LEFT))
-        {
-            Matrix.translateM(modelMatrix, 0, 0.15f, 0.0f, -0.9f);
-        }
-
-        else
-        {
-            Matrix.translateM(modelMatrix, 0, -0.15f, 0.0f, -0.9f);
-        }
-
-        Matrix.scaleM(modelMatrix, 0, 1.0f, 1.0f, 1.0f);
-
-        float[] mvpMatrix = new float[16];
-        Matrix.multiplyMM(mvpMatrix, 0, perspective, 0, modelMatrix, 0);
-        GLES20.glUniformMatrix4fv(mModelViewProjectionParam, 1, false, mvpMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-    }
-
-    @Override
-    public void onRendererShutdown()
-    {
-        //Log.i("MainActivity", "Selam ben Ahmet");
-    }
-
-    @Override
-    public void onFinishFrame(Viewport viewport) {}
-
-    @Override
-    public void onSurfaceChanged(int width, int height)
-    {
-        GLES20.glViewport(0, 0, width, height);
-    }
-
-    @Override
-    public void onSurfaceCreated(EGLConfig eglConfig)
-    {
-        mQuadProgram = createQuadProgram();
-        mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
-        mQuadTexCoordParam = GLES20.glGetAttribLocation(mQuadProgram, "a_TexCoord");
-        mModelViewProjectionParam = GLES20.glGetUniformLocation(mQuadProgram, "u_MVP");
-        updateSurface();
-    }
-
-    private int createQuadProgram()
-    {
-        final String vertexShaderCode =
-                "attribute vec4 a_Position;\n" +
-                        "attribute vec2 a_TexCoord;\n" +
-                        "varying vec2 v_TexCoord;\n" +
-                        "uniform mat4 u_MVP;\n" +
-                        "void main() {\n" +
-                        "  v_TexCoord = a_TexCoord;\n" +
-                        "  gl_Position = u_MVP * a_Position;\n" +
-                        "}\n";
-
-        final String fragmentShaderCode =
-                "precision mediump float;\n" +
-                        "varying vec2 v_TexCoord;\n" +
-                        "uniform sampler2D u_Texture;\n" +
-                        "void main() {\n" +
-                        "  vec4 textureColor = texture2D(u_Texture, v_TexCoord);\n" +
-                        "  float distance = distance(v_TexCoord, vec2(0.5, 0.5));\n" +
-                        "  if (distance < 0.005) {\n" + // Nişangah boyutunu ayarlamak için bu değeri küçültelim dogukan!!!
-                        "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n" + // Kırmızı renk
-                        "  } else {\n" +
-                        "    gl_FragColor = textureColor;\n" +
-                        "  }\n" +
-                        "}\n";
-
-        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
-        int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
-        int program = GLES20.glCreateProgram();
-
-        GLES20.glAttachShader(program, vertexShader);
-        GLES20.glAttachShader(program, fragmentShader);
-        GLES20.glLinkProgram(program);
-        return program;
-    }
-
-    private int loadShader(int type, String shaderCode)
-    {
-        int shader = GLES20.glCreateShader(type);
-        GLES20.glShaderSource(shader, shaderCode);
-        GLES20.glCompileShader(shader);
-        return shader;
-    }
-
-    private int loadTexture(Bitmap bitmap)
-    {
-        final int[] textureHandle = new int[1];
-        GLES20.glGenTextures(1, textureHandle, 0);
-        if (textureHandle[0] != 0)
-        {
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-            android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-            bitmap.recycle();
-        }
-
-        if (textureHandle[0] == 0)
-        {
-            throw new RuntimeException("Error loading texture.");
-        }
-        return textureHandle[0];
-    }
-
-    private int loadTexture(Context context, int resourceId)
-    {
-        final int[] textureHandle = new int[1];
-        GLES20.glGenTextures(1, textureHandle, 0);
-
-        if (textureHandle[0] != 0)
-        {
-            final BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inScaled = false;
-            final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-            android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-            bitmap.recycle();
-        }
-
-        if (textureHandle[0] == 0)
-        {
-            throw new RuntimeException("Error loading texture.");
-        }
-        return textureHandle[0];
-    }
-
     /*
         Hassas titreşimler handle edilmesin diye Kalman filtre tekniğini kullandım; değiştirebilirz sonra bu kısmı,
         oyunda da yine titreşim sıkıntısı oluyor. Orası için Quaternion tekniğini kulanmayı deneyeceğiz yarın!!! (19.05.24)
-
     */
+    /**
+     * KalmanFilter class for filtering sensor data.
+     */
     static class KalmanFilter
     {
         private final float[] stateEstimate;
@@ -464,6 +547,10 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         private final float[] processNoise;
         private final float[] measurementNoise;
 
+        /**
+         * Constructor for KalmanFilter.
+         * @param size The size of the state vector.
+         */
         public KalmanFilter(int size)
         {
             stateEstimate = new float[size];
@@ -479,17 +566,19 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             }
         }
 
+        /**
+         * Updates the state estimate with the given measurement.
+         * @param measurement The measurement vector.
+         * @return The updated state estimate.
+         */
         public float[] update(float[] measurement)
         {
             float[] newEstimate = new float[stateEstimate.length];
 
             for (int i = 0; i < stateEstimate.length; i++)
             {
-                // Kalman gain
-                float kalmanGain = errorCovariance[i] / (errorCovariance[i] + measurementNoise[i]);
-
-                // Update estimate with measurement
-                newEstimate[i] = stateEstimate[i] + kalmanGain * (measurement[i] - stateEstimate[i]);
+                float kalmanGain = errorCovariance[i] / (errorCovariance[i] + measurementNoise[i]); // Kalman gain
+                newEstimate[i] = stateEstimate[i] + kalmanGain * (measurement[i] - stateEstimate[i]); // Update estimate with measurement
                 // Update error covariance
                 errorCovariance[i] = (1 - kalmanGain) * errorCovariance[i] + processNoise[i];
                 stateEstimate[i] = newEstimate[i];
@@ -498,4 +587,3 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         }
     }
 }
-

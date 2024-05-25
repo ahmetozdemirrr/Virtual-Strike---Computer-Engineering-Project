@@ -5,12 +5,24 @@ import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.vrgames.vrviewstreamer.MainActivity;
-
+/**
+ * SplashScreen class that displays a splash screen for a set duration
+ * before transitioning to the MainActivity.
+ */
 public class SplashScreen extends AppCompatActivity
 {
-    private static final int SPLASH_SCREEN_DURATION = 1000; // Başlangıçta ilk ekranda 1.5 saniye duralım.
+    /**
+     * The duration for which the splash screen is displayed, in milliseconds.
+     */
+    private static final int SPLASH_SCREEN_DURATION = 1000; // 1 second
 
+    /**
+     * Called when the activity is first created.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *        previously being shut down then this Bundle contains the data it most
+     *        recently supplied in onSaveInstanceState(Bundle). Note: Otherwise it is null.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -19,13 +31,18 @@ public class SplashScreen extends AppCompatActivity
 
         new Handler().postDelayed(new Runnable()
         {
+            /**
+             * This method will be executed once the timer is over.
+             * It starts the MainActivity and finishes the SplashScreen activity.
+             */
             @Override
             public void run()
             {
-                // Splash ekranı gösterildikten sonra ana aktiviteye geçiş yap
+                // Start MainActivity after the splash screen duration
                 Intent intent = new Intent(SplashScreen.this, MainActivity.class);
                 startActivity(intent);
-                finish(); // Splash aktivitesini kapat
+                // Close the SplashScreen activity
+                finish();
             }
         }, SPLASH_SCREEN_DURATION);
     }
