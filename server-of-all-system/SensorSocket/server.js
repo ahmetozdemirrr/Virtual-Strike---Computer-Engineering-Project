@@ -7,7 +7,7 @@ wss.on('connection', (ws) => {
     clients.set(ws, id);
     console.log(`new connection assigned id: ${id}`);
     ws.on('message', (data) => {
-        console.log(`sensor: ${data}`);
+        //console.log(`sensor: ${data}`);
         serverBroadcast(`${data}`);
     });
     ws.on('error', (error) => {
