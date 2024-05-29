@@ -32,31 +32,34 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 {
     private static final float Z_NEAR = 0.1f;
     private static final float Z_FAR = 100.0f;
-    private WebSocketClient webSocketClient;
-    private WebSocketClient sensorSocket;
-    private float[] mCamera;
-    private final KalmanFilter kalmanFilter = new KalmanFilter(16);
-    private int mTextureDataHandleLeft;
-    private int mTextureDataHandleRight;
-    private volatile Bitmap bitmapLeft;
-    private volatile Bitmap bitmapRight;
-    private boolean isLeftEye = true;
-    private FloatBuffer mQuadVertices;
-    private FloatBuffer mQuadTexCoord;
-    private int mQuadProgram;
-    private int mQuadPositionParam;
-    private int mQuadTexCoordParam;
-    private int mModelViewProjectionParam;
     private static final int COORDS_PER_VERTEX = 3;
     private static final int TEXCOORDS_PER_VERTEX = 2;
-    String ivmeolcer;
-    boolean appisOpen = true;
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
+    private static String IPSocket = "172.20.10.2";
+    private final KalmanFilter kalmanFilter = new KalmanFilter(16);
     private final Object leftTextureLock = new Object();
     private final Object rightTextureLock = new Object();
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private volatile Bitmap bitmapLeft;
+    private volatile Bitmap bitmapRight;
+    private WebSocketClient webSocketClient;
+    private WebSocketClient sensorSocket;
+    private int mQuadProgram;
+    private int mQuadPositionParam;
+    private int mQuadTexCoordParam;
+    private int mModelViewProjectionParam;    
+    private int mTextureDataHandleLeft;
+    private int mTextureDataHandleRight;
+    private SensorManager sensorManager;
+    private Sensor accelerometer;   
+    private FloatBuffer mQuadVertices;
+    private FloatBuffer mQuadTexCoord;
+    private float[] mCamera;
+    private boolean isLeftEye = true;
+    String ivmeolcer;
+    boolean appisOpen = true;
 
+    //private static String IPSocket = "192.168.148.137";
+    
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -90,47 +93,37 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     private void initializeQuadData()
     {
         final float[] QUAD_COORDS = new float[]
-                {
-                        -1.0f, -1.0f, 0.0f,
-                        1.0f, -1.0f, 0.0f,
-                        -1.0f, 1.0f, 0.0f,
-                        1.0f, 1.0f, 0.0f,
-                };
+        {
+            -1.0f, -1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f,
+        };
         mQuadVertices = ByteBuffer.allocateDirect(QUAD_COORDS.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         mQuadVertices.put(QUAD_COORDS).position(0);
 
         final float[] QUAD_TEX_COORDS = new float[]
-                {
-                        0.0f, 1.0f,
-                        1.0f, 1.0f,
-                        0.0f, 0.0f,
-                        1.0f, 0.0f,
-                };
+        {
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+        };
         mQuadTexCoord = ByteBuffer.allocateDirect(QUAD_TEX_COORDS.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         mQuadTexCoord.put(QUAD_TEX_COORDS).position(0);
     }
 
-    /*private synchronized void updateTexture(String base64Image)
+    private synchronized void updateTexture(byte[] byteArray) 
     {
-        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-        Bitmap bmp = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-        if (isLeftEye)
-        {
-            bitmapLeft = bmp;
-        }
-
-        else
-        {
-            bitmapRight = bmp;
-        }
-        isLeftEye = !isLeftEye;
-    }*/
-    private synchronized void updateTexture(byte[] byteArray) {
         Bitmap bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        if (bmp != null) {
+
+        if (bmp != null) 
+        {
             Log.i("WebSocket", "Bitmap created with dimensions: " + bmp.getWidth() + "x" + bmp.getHeight());
-        } else {
+        } 
+
+        else 
+        {
             Log.e("WebSocket", "Failed to decode byte array to bitmap");
         }
 
@@ -145,7 +138,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         }
         isLeftEye = !isLeftEye;
     }
-
 
     @Override
     public void onDrawEye(Eye eye)
@@ -194,73 +186,38 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         }
     }
 
-    /*private void connectWebSocket()
+    private void connectWebSocket() 
     {
         URI uri;
 
-        try
+        try 
         {
-            uri = new URI("ws://172.20.10.2:3030");
-        }
+            uri = new URI("ws://"+IPSocket+":3030");
+        } 
 
-        catch (Exception e)
+        catch (Exception e) 
         {
             Log.e("WebSocket", "URI error", e);
             return;
         }
 
-        webSocketClient = new WebSocketClient(uri)
+        webSocketClient = new WebSocketClient(uri) 
         {
             @Override
-            public void onOpen(ServerHandshake serverHandshake)
+            public void onOpen(ServerHandshake serverHandshake) 
             {
                 Log.i("WebSocket", "Connection opened");
             }
 
             @Override
-            public void onMessage(String message)
+            public void onMessage(String message) 
             {
-                updateTexture(message);
-            }
-
-            @Override
-            public void onClose(int i, String s, boolean b)
-            {
-                Log.i("WebSocket", "Closed " + s);
-            }
-
-            @Override
-            public void onError(Exception e)
-            {
-                Log.e("WebSocket", "Error ", e);
-            }
-        };
-        webSocketClient.connect();
-    }
-    */
-    private void connectWebSocket() {
-        URI uri;
-
-        try {
-            uri = new URI("ws://192.168.247.137:3030");
-        } catch (Exception e) {
-            Log.e("WebSocket", "URI error", e);
-            return;
-        }
-
-        webSocketClient = new WebSocketClient(uri) {
-            @Override
-            public void onOpen(ServerHandshake serverHandshake) {
-                Log.i("WebSocket", "Connection opened");
-            }
-
-            @Override
-            public void onMessage(String message) {
                 Log.i("WebSocket", "Message received: " + message);
             }
 
             @Override
-            public void onMessage(ByteBuffer bytes) {
+            public void onMessage(ByteBuffer bytes) 
+            {
                 byte[] byteArray = new byte[bytes.remaining()];
                 bytes.get(byteArray);
                 Log.i("WebSocket", "Byte message received of length: " + byteArray.length);
@@ -268,12 +225,14 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             }
 
             @Override
-            public void onClose(int code, String reason, boolean remote) {
+            public void onClose(int code, String reason, boolean remote) 
+            {
                 Log.i("WebSocket", "Closed " + reason);
             }
 
             @Override
-            public void onError(Exception e) {
+            public void onError(Exception e) 
+            {
                 Log.e("WebSocket", "Error ", e);
             }
         };
@@ -287,7 +246,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         try
         {
             //uri = new URI("ws://45.55.49.156:3000");
-            uri = new URI("ws://192.168.247.137:3000");
+            uri = new URI("ws://"+IPSocket+":3000");
         }
 
         catch (Exception e)
@@ -307,7 +266,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             @Override
             public void onMessage(String s)
             {
-                //Log.i("SensorSocket", "Received message: " + s);
+                Log.i("SensorSocket", "Received message: " + s);
             }
 
             @Override
@@ -345,11 +304,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                 public void onSensorChanged(SensorEvent event)
                 {
                     float zValue = event.values[2];
+                    float xValue = event.values[0];
                     Log.d("deneme222", "Z Value: " + zValue);
                     // Sensör verilerini aldıktan sonra dinleyiciyi kaldırabilirsiniz
                     sensorManager.unregisterListener(this);
                     // Send the filtered head view data to the server
-                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue+ " " + String.valueOf(mCamera[2]);
+                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue+ " " + String.valueOf(mCamera[2])+" " +xValue;
 
                     if (sensorSocket != null && sensorSocket.isOpen())
                     {
@@ -358,11 +318,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                 }
 
                 @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                public void onAccuracyChanged(Sensor sensor, int accuracy) 
+                {
                     // Sensör doğruluğu değişikliklerini burada işleyebilirsiniz.
                 }
             };
-            // Dinleyiciyi kaydettirin
             sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
@@ -409,7 +369,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     @Override
     public void onRendererShutdown()
     {
-        //Log.i("MainActivity", "Selam ben Ahmet");
+        Log.i("MainActivity", "Selam ben Ahmet");
     }
 
     @Override
@@ -434,28 +394,28 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     private int createQuadProgram()
     {
         final String vertexShaderCode =
-                "attribute vec4 a_Position;\n" +
-                        "attribute vec2 a_TexCoord;\n" +
-                        "varying vec2 v_TexCoord;\n" +
-                        "uniform mat4 u_MVP;\n" +
-                        "void main() {\n" +
-                        "  v_TexCoord = a_TexCoord;\n" +
-                        "  gl_Position = u_MVP * a_Position;\n" +
-                        "}\n";
+            "attribute vec4 a_Position;\n" +
+            "attribute vec2 a_TexCoord;\n" +
+            "varying vec2 v_TexCoord;\n" +
+            "uniform mat4 u_MVP;\n" +
+            "void main() {\n" +
+            "  v_TexCoord = a_TexCoord;\n" +
+            "  gl_Position = u_MVP * a_Position;\n" +
+            "}\n";
 
         final String fragmentShaderCode =
-                "precision mediump float;\n" +
-                        "varying vec2 v_TexCoord;\n" +
-                        "uniform sampler2D u_Texture;\n" +
-                        "void main() {\n" +
-                        "  vec4 textureColor = texture2D(u_Texture, v_TexCoord);\n" +
-                        "  float distance = distance(v_TexCoord, vec2(0.5, 0.5));\n" +
-                        "  if (distance < 0.005) {\n" + // Nişangah boyutunu ayarlamak için bu değeri küçültelim dogukan!!!
-                        "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n" + // Kırmızı renk
-                        "  } else {\n" +
-                        "    gl_FragColor = textureColor;\n" +
-                        "  }\n" +
-                        "}\n";
+            "precision mediump float;\n" +
+            "varying vec2 v_TexCoord;\n" +
+            "uniform sampler2D u_Texture;\n" +
+            "void main() {\n" +
+            "  vec4 textureColor = texture2D(u_Texture, v_TexCoord);\n" +
+            "  float distance = distance(v_TexCoord, vec2(0.5, 0.5));\n" +
+            "  if (distance < 0.005) {\n" + // Nişangah boyutunu ayarlamak için bu değeri küçültelim dogukan!!!
+            "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n" + // Kırmızı renk
+            "  } else {\n" +
+            "    gl_FragColor = textureColor;\n" +
+            "  }\n" +
+            "}\n";
 
         int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
         int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
@@ -479,6 +439,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
+
         if (textureHandle[0] != 0)
         {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
@@ -504,6 +465,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;
             final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+            
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
