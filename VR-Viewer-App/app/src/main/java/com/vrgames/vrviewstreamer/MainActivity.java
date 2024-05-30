@@ -25,10 +25,12 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.microedition.khronos.egl.EGLConfig;
 
-public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
+/**
+ * MainActivity class that sets up the VR environment, handles sensor data, and communicates with a server.
+ */
+public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 {
     private static final float Z_NEAR = 0.1f;
     private static final float Z_FAR = 100.0f;
@@ -60,8 +62,15 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
 
     //private static String IPSocket = "192.168.148.137";
     
+    /**
+     * Called when the activity is first created.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in onSaveInstanceState(Bundle). <b>Note: Otherwise it is null.</b>
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState)
+    protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -79,8 +88,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         // Initialize quad vertices and texture coordinates
     }
 
+    /**
+     * Called when the activity is paused.
+     */
     @Override
-    protected void onPause()
+    protected void onPause() 
     {
         super.onPause();
         webSocketClient.close();
@@ -90,7 +102,10 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         GLES20.glDeleteProgram(mQuadProgram);
     }
 
-    private void initializeQuadData()
+    /**
+     * Initialize the quad data for rendering.
+     */
+    private void initializeQuadData() 
     {
         final float[] QUAD_COORDS = new float[]
         {
@@ -113,6 +128,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         mQuadTexCoord.put(QUAD_TEX_COORDS).position(0);
     }
 
+    /**
+     * Update the texture with new data.
+     *
+     * @param byteArray The byte array containing the texture data.
+     */
     private synchronized void updateTexture(byte[] byteArray) 
     {
         Bitmap bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
@@ -127,20 +147,25 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             Log.e("WebSocket", "Failed to decode byte array to bitmap");
         }
 
-        if (isLeftEye)
+        if (isLeftEye) 
         {
             bitmapLeft = bmp;
-        }
+        } 
 
-        else
+        else 
         {
             bitmapRight = bmp;
         }
         isLeftEye = !isLeftEye;
     }
 
+    /**
+     * Draw the scene for a given eye.
+     *
+     * @param eye The eye being rendered.
+     */
     @Override
-    public void onDrawEye(Eye eye)
+    public void onDrawEye(Eye eye) 
     {
         updateSurface();
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
@@ -148,27 +173,30 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
         int textureHandle;
 
-        synchronized (this)
+        synchronized (this) 
         {
             textureHandle = (eye.getType() == Eye.Type.LEFT) ? mTextureDataHandleLeft : mTextureDataHandleRight;
         }
-        drawQuad(perspective, textureHandle,eye);
+        drawQuad(perspective, textureHandle, eye);
     }
 
-    private void updateSurface()
+    /**
+     * Update the surface textures.
+     */
+    private void updateSurface() 
     {
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
-        synchronized (this)
+        synchronized (this) 
         {
-            if (appisOpen)
+            if (appisOpen) 
             {
                 mTextureDataHandleLeft = loadTexture(this, R.drawable.splash);
                 mTextureDataHandleRight = loadTexture(this, R.drawable.splash);
                 appisOpen = false;
             }
 
-            if (bitmapLeft != null)
+            if (bitmapLeft != null) 
             {
                 GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleLeft}, 0);
                 mTextureDataHandleLeft = loadTexture(bitmapLeft);
@@ -176,7 +204,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                 bitmapLeft = null;
             }
 
-            if (bitmapRight != null)
+            if (bitmapRight != null) 
             {
                 GLES20.glDeleteTextures(1, new int[]{mTextureDataHandleRight}, 0);
                 mTextureDataHandleRight = loadTexture(bitmapRight);
@@ -186,13 +214,16 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         }
     }
 
+    /**
+     * Connect to the WebSocket server.
+     */
     private void connectWebSocket() 
     {
         URI uri;
 
         try 
         {
-            uri = new URI("ws://"+IPSocket+":3030");
+            uri = new URI("ws://" + IPSocket + ":3030");
         } 
 
         catch (Exception e) 
@@ -239,44 +270,47 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         webSocketClient.connect();
     }
 
-    private void connectSensorSocket()
+    /**
+     * Connect to the sensor WebSocket server.
+     */
+    private void connectSensorSocket() 
     {
         URI uri;
 
-        try
+        try 
         {
             //uri = new URI("ws://45.55.49.156:3000");
-            uri = new URI("ws://"+IPSocket+":3000");
-        }
+            uri = new URI("ws://" + IPSocket + ":3000");
+        } 
 
-        catch (Exception e)
+        catch (Exception e) 
         {
             e.printStackTrace();
             return;
         }
 
-        sensorSocket = new WebSocketClient(uri)
+        sensorSocket = new WebSocketClient(uri) 
         {
             @Override
-            public void onOpen(ServerHandshake serverHandshake)
+            public void onOpen(ServerHandshake serverHandshake) 
             {
                 Log.i("SensorSocket", "Connection opened sensor");
             }
 
             @Override
-            public void onMessage(String s)
+            public void onMessage(String s) 
             {
                 Log.i("SensorSocket", "Received message: " + s);
             }
 
             @Override
-            public void onClose(int i, String s, boolean b)
+            public void onClose(int i, String s, boolean b) 
             {
                 Log.i("SensorSocket", "Connection closed");
             }
 
             @Override
-            public void onError(Exception e)
+            public void onError(Exception e) 
             {
                 e.printStackTrace();
             }
@@ -284,8 +318,13 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         sensorSocket.connect();
     }
 
+    /**
+     * Called when a new frame is ready.
+     *
+     * @param headTransform The head transform data.
+     */
     @Override
-    public void onNewFrame(HeadTransform headTransform)
+    public void onNewFrame(HeadTransform headTransform) 
     {
         float[] currentHeadView = new float[16];
         headTransform.getHeadView(currentHeadView, 0);
@@ -295,13 +334,13 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         // Update the camera view with the filtered head view
         System.arraycopy(mFilteredHeadView, 0, mCamera, 0, 16);
 
-        if (accelerometer != null)
+        if (accelerometer != null) 
         {
             // Önce bir dinleyici ekleyin
-            SensorEventListener sensorEventListener = new SensorEventListener()
+            SensorEventListener sensorEventListener = new SensorEventListener() 
             {
                 @Override
-                public void onSensorChanged(SensorEvent event)
+                public void onSensorChanged(SensorEvent event) 
                 {
                     float zValue = event.values[2];
                     float xValue = event.values[0];
@@ -309,9 +348,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
                     // Sensör verilerini aldıktan sonra dinleyiciyi kaldırabilirsiniz
                     sensorManager.unregisterListener(this);
                     // Send the filtered head view data to the server
-                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue+ " " + String.valueOf(mCamera[2])+" " +xValue;
+                    ivmeolcer = String.valueOf(mCamera[0]) + " " + zValue + " " + String.valueOf(mCamera[2]) + " " + xValue;
 
-                    if (sensorSocket != null && sensorSocket.isOpen())
+                    if (sensorSocket != null && sensorSocket.isOpen()) 
                     {
                         sensorSocket.send(ivmeolcer);
                     }
@@ -331,7 +370,14 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         headTransform.getHeadView(currentHeadView, 0);
     }
 
-    private void drawQuad(float[] perspective, int textureHandle,Eye eye)
+    /**
+     * Draw a quad on the screen.
+     *
+     * @param perspective The perspective matrix.
+     * @param textureHandle The texture handle to use.
+     * @param eye The eye being rendered.
+     */
+    private void drawQuad(float[] perspective, int textureHandle, Eye eye) 
     {
         GLES20.glUseProgram(mQuadProgram);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -348,12 +394,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         float[] modelMatrix = new float[16];
         Matrix.setIdentityM(modelMatrix, 0);
 
-        if((eye.getType() == Eye.Type.LEFT))
+        if ((eye.getType() == Eye.Type.LEFT)) 
         {
             Matrix.translateM(modelMatrix, 0, 0.15f, 0.0f, -0.9f);
-        }
+        } 
 
-        else
+        else 
         {
             Matrix.translateM(modelMatrix, 0, -0.15f, 0.0f, -0.9f);
         }
@@ -366,8 +412,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     }
 
+    /**
+     * Called when the renderer is shut down.
+     */
     @Override
-    public void onRendererShutdown()
+    public void onRendererShutdown() 
     {
         Log.i("MainActivity", "Selam ben Ahmet");
     }
@@ -375,14 +424,25 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     @Override
     public void onFinishFrame(Viewport viewport) {}
 
+    /**
+     * Called when the surface size changes.
+     *
+     * @param width The new width.
+     * @param height The new height.
+     */
     @Override
-    public void onSurfaceChanged(int width, int height)
+    public void onSurfaceChanged(int width, int height) 
     {
         GLES20.glViewport(0, 0, width, height);
     }
 
+    /**
+     * Called when the surface is created.
+     *
+     * @param eglConfig The EGL configuration.
+     */
     @Override
-    public void onSurfaceCreated(EGLConfig eglConfig)
+    public void onSurfaceCreated(EGLConfig eglConfig) 
     {
         mQuadProgram = createQuadProgram();
         mQuadPositionParam = GLES20.glGetAttribLocation(mQuadProgram, "a_Position");
@@ -391,8 +451,12 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         updateSurface();
     }
 
-    private int createQuadProgram()
-    {
+    /**
+     * Create a program for rendering a quad.
+     *
+     * @return The created program handle.
+     */
+    private int createQuadProgram() {
         final String vertexShaderCode =
             "attribute vec4 a_Position;\n" +
             "attribute vec2 a_TexCoord;\n" +
@@ -424,23 +488,38 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
         GLES20.glAttachShader(program, vertexShader);
         GLES20.glAttachShader(program, fragmentShader);
         GLES20.glLinkProgram(program);
+
         return program;
     }
 
-    private int loadShader(int type, String shaderCode)
+    /**
+     * Load a shader.
+     *
+     * @param type The type of shader to load.
+     * @param shaderCode The shader code.
+     * @return The created shader handle.
+     */
+    private int loadShader(int type, String shaderCode) 
     {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, shaderCode);
         GLES20.glCompileShader(shader);
+
         return shader;
     }
 
-    private int loadTexture(Bitmap bitmap)
+    /**
+     * Load a texture from a bitmap.
+     *
+     * @param bitmap The bitmap to load the texture from.
+     * @return The created texture handle.
+     */
+    private int loadTexture(Bitmap bitmap) 
     {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
 
-        if (textureHandle[0] != 0)
+        if (textureHandle[0] != 0) 
         {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
             android.opengl.GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
@@ -448,19 +527,26 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
         }
 
-        if (textureHandle[0] == 0)
+        if (textureHandle[0] == 0) 
         {
             throw new RuntimeException("Error loading texture.");
         }
         return textureHandle[0];
     }
 
-    private int loadTexture(Context context, int resourceId)
+    /**
+     * Load a texture from a resource ID.
+     *
+     * @param context The context to use.
+     * @param resourceId The resource ID of the texture.
+     * @return The created texture handle.
+     */
+    private int loadTexture(Context context, int resourceId) 
     {
         final int[] textureHandle = new int[1];
         GLES20.glGenTextures(1, textureHandle, 0);
 
-        if (textureHandle[0] != 0)
+        if (textureHandle[0] != 0) 
         {
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;
@@ -473,33 +559,36 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             bitmap.recycle();
         }
 
-        if (textureHandle[0] == 0)
+        if (textureHandle[0] == 0) 
         {
             throw new RuntimeException("Error loading texture.");
         }
         return textureHandle[0];
     }
 
-    /*
-        Hassas titreşimler handle edilmesin diye Kalman filtre tekniğini kullandım; değiştirebilirz sonra bu kısmı,
-        oyunda da yine titreşim sıkıntısı oluyor. Orası için Quaternion tekniğini kulanmayı deneyeceğiz yarın!!! (19.05.24)
-
-    */
-    static class KalmanFilter
+    /**
+     * Kalman filter implementation to reduce sensor noise.
+     */
+    static class KalmanFilter 
     {
         private final float[] stateEstimate;
         private final float[] errorCovariance;
         private final float[] processNoise;
         private final float[] measurementNoise;
 
-        public KalmanFilter(int size)
+        /**
+         * Constructor for the KalmanFilter.
+         *
+         * @param size The size of the state vector.
+         */
+        public KalmanFilter(int size) 
         {
             stateEstimate = new float[size];
             errorCovariance = new float[size];
             processNoise = new float[size];
             measurementNoise = new float[size];
 
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++) 
             {
                 errorCovariance[i] = 1.0f; // Initialize with some reasonable value
                 processNoise[i] = 1.0f; // Adjust this value based on your process
@@ -507,11 +596,17 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             }
         }
 
-        public float[] update(float[] measurement)
+        /**
+         * Update the state estimate with a new measurement.
+         *
+         * @param measurement The new measurement.
+         * @return The updated state estimate.
+         */
+        public float[] update(float[] measurement) 
         {
             float[] newEstimate = new float[stateEstimate.length];
 
-            for (int i = 0; i < stateEstimate.length; i++)
+            for (int i = 0; i < stateEstimate.length; i++) 
             {
                 // Kalman gain
                 float kalmanGain = errorCovariance[i] / (errorCovariance[i] + measurementNoise[i]);
