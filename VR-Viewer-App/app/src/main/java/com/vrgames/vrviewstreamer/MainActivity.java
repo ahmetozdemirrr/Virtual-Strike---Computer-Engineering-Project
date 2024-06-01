@@ -36,7 +36,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     private static final float Z_FAR = 100.0f;
     private static final int COORDS_PER_VERTEX = 3;
     private static final int TEXCOORDS_PER_VERTEX = 2;
-    private static String IPSocket = "192.168.148.57";
+    //private static String IPSocket = "192.168.148.57";
+    private static String IPSocket = "134.209.227.105";
     private final KalmanFilter kalmanFilter = new KalmanFilter(16);
     private final Object leftTextureLock = new Object();
     private final Object rightTextureLock = new Object();
@@ -213,19 +214,19 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             }
         }
     }
-
-    /**
+	
+	/**
      * Connect to the WebSocket server.
      */
-    private void connectWebSocket() 
-    {
+     private void connectWebSocket() 
+     {
         URI uri;
 
         try 
         {
-            uri = new URI("ws://" + IPSocket + ":3030");
+            uri = new URI("ws://"+IPSocket+":3030");
         } 
-
+        
         catch (Exception e) 
         {
             Log.e("WebSocket", "URI error", e);
@@ -251,7 +252,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
             {
                 byte[] byteArray = new byte[bytes.remaining()];
                 bytes.get(byteArray);
-                Log.i("WebSocket", "Byte message received of length: " + byteArray.length);
                 updateTexture(byteArray);
             }
 
@@ -273,51 +273,50 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     /**
      * Connect to the sensor WebSocket server.
      */
-    private void connectSensorSocket() 
+    private void connectSensorSocket()
     {
         URI uri;
 
-        try 
+        try
         {
-            //uri = new URI("ws://45.55.49.156:3000");
-            uri = new URI("ws://" + IPSocket + ":3000");
-        } 
+            uri = new URI("ws://"+IPSocket+":3000");
+        }
 
-        catch (Exception e) 
+        catch (Exception e)
         {
             e.printStackTrace();
             return;
         }
 
-        sensorSocket = new WebSocketClient(uri) 
+        sensorSocket = new WebSocketClient(uri)
         {
             @Override
-            public void onOpen(ServerHandshake serverHandshake) 
+            public void onOpen(ServerHandshake serverHandshake)
             {
                 Log.i("SensorSocket", "Connection opened sensor");
             }
 
             @Override
-            public void onMessage(String s) 
+            public void onMessage(String s)
             {
-                Log.i("SensorSocket", "Received message: " + s);
+
             }
 
             @Override
-            public void onClose(int i, String s, boolean b) 
+            public void onClose(int i, String s, boolean b)
             {
                 Log.i("SensorSocket", "Connection closed");
             }
 
             @Override
-            public void onError(Exception e) 
+            public void onError(Exception e)
             {
                 e.printStackTrace();
             }
         };
         sensorSocket.connect();
     }
-
+    
     /**
      * Called when a new frame is ready.
      *
