@@ -51,7 +51,7 @@ int main(void)
             return EXIT_FAILURE;
         }
 
-        std::string const host = "45.55.49.156";
+        std::string const host = "134.209.227.105";
         std::string const port = "8080";
         net::io_context ioc;
 

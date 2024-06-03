@@ -3,6 +3,10 @@
 ## Overview
 The Virtual Strike Project is a VR (Virtual Reality) game developed by VS Games (Group 4) as part of the CSE 396 – Computer Engineering Project at Gebze Technical University. This module focuses on the game aspect of the project, providing detailed instructions on how to set up, run, and play the game.
 
+Only the source code is uploaded here. All code and the rest of the game files are available in the drive link below:
+
+[All sourceof game module](https://drive.google.com/drive/folders/1m0au-bo_iSQ18SsnJ7poVGuJxIx5lqYX?usp=sharing)
+
 ## Installation
 
 ### Prerequisites
