@@ -126,3 +126,7 @@ Links:
 * [Prof. Dr. Erkan Zergeroğlu](https://www.gtu.edu.tr/tr/personel/98/10414/display.aspx)
 * [Department of Computer Engineering](https://www.gtu.edu.tr/kategori/91/3/bilgisayar-muhendisligi.aspx?languageId=2)
 * [Gebze Technical University](https://www.gtu.edu.tr/?languageId=2)
+
+This module(game side) of the project was written by [Akif Safa Angi](https://github.com/Leaxer), [Murat Erbilici](https://github.com/ThoRight), [Aykut Sert](https://github.com/aykutssert) and [Burak Kurt](https://github.com/Kurtburakk).
+
+The tasks of processing the data coming from the joystick from the controller and the gyroscope sensor of the android device in the game were also written [Doğukan Baş](https://github.com/Dogukan777) and [Ahmet Özdemir](https://github.com/ahmetozdemirrr).
