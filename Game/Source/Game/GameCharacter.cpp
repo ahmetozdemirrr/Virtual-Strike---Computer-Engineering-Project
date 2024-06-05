@@ -25,8 +25,8 @@
 
 AGameCharacter::AGameCharacter()
 {
-	//IPSocket = "172.20.10.2";
-	IPSocket = "192.168.148.137";
+	//IPSocket = "";
+	IPSocket = "";
 	fire = 0;
 	Score = 0;
 	// Character doesnt have a rifle at start
@@ -56,8 +56,8 @@ AGameCharacter::AGameCharacter()
 	SensorSocket = FWebSocketsModule::Get().CreateWebSocket("ws://"+ IPSocket+":3000");
 	WebSocket = FWebSocketsModule::Get().CreateWebSocket("ws://"+ IPSocket +":8080");
 	RenderTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("RenderTarget"));
-	RenderTarget->InitAutoFormat(800, 600); // Çözünürlük ayarlarý
-	RenderTarget->ClearColor = FLinearColor::Black; // RenderTarget'ý temizle (siyah)
+	RenderTarget->InitAutoFormat(800, 600); // Ã‡Ã¶zÃ¼nÃ¼rlÃ¼k ayarlarÃ½
+	RenderTarget->ClearColor = FLinearColor::Black; // RenderTarget'Ã½ temizle (siyah)
 	RenderTarget->UpdateResourceImmediate(true);
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -73,7 +73,7 @@ void AGameCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	StartAsyncInitMobileTimer();
-	Init(); /* Kol için çalýþan fonksiyon */
+	Init(); /* Kol iÃ§in Ã§alÃ½Ã¾an fonksiyon */
 	InitMobileSensor(); /* Kafa hareketlerini jiroskopu aktif eder */
 	StartAsyncInit();
 	WebSocket->Connect();
@@ -308,7 +308,7 @@ void AGameCharacter::AsyncInitMobile() {
 		SceneCapture->CaptureScene();
 	
 
-		// Render target'dan piksel verilerini alýr
+		// Render target'dan piksel verilerini alÃ½r
 		FTextureRenderTargetResource* RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 		TArray<FColor> Bitmap;
 		RenderTargetResource->ReadPixels(Bitmap);
@@ -369,17 +369,17 @@ void AGameCharacter::setScore(int newScore) {
 
 void AGameCharacter::MoveForward(float Value)
 {
-	// Hareket yönünü ayarla
+	// Hareket yÃ¶nÃ¼nÃ¼ ayarla
 	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
-	// Karakteri ileriye doðru hareket ettir
+	// Karakteri ileriye doÃ°ru hareket ettir
 	AddMovementInput(Direction, Value);
 }
 
 void AGameCharacter::MoveRight(float Value)
 {
-	// Hareket yönünü ayarla
+	// Hareket yÃ¶nÃ¼nÃ¼ ayarla
 	FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
-	// Karakteri yana doðru hareket ettir
+	// Karakteri yana doÃ°ru hareket ettir
 	AddMovementInput(Direction, Value);
 }
 void AGameCharacter::TurnAtRate(float Rate)
