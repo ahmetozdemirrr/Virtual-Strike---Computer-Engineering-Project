@@ -36,8 +36,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer
     private static final float Z_FAR = 100.0f;
     private static final int COORDS_PER_VERTEX = 3;
     private static final int TEXCOORDS_PER_VERTEX = 2;
-    //private static String IPSocket = "192.168.148.57";
-    private static String IPSocket = "134.209.227.105";
+    //private static String IPSocket = "";
+    private static String IPSocket = "";
     private final KalmanFilter kalmanFilter = new KalmanFilter(16);
     private final Object leftTextureLock = new Object();
     private final Object rightTextureLock = new Object();
